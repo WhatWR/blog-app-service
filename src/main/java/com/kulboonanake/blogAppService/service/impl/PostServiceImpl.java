@@ -3,11 +3,13 @@ package com.kulboonanake.blogAppService.service.impl;
 import com.kulboonanake.blogAppService.entity.Post;
 import com.kulboonanake.blogAppService.exception.ResourceNotFoundException;
 import com.kulboonanake.blogAppService.payload.PostDto;
+import com.kulboonanake.blogAppService.payload.PostResponse;
 import com.kulboonanake.blogAppService.repository.PostRepository;
 import com.kulboonanake.blogAppService.service.PostService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -34,14 +36,24 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public List<PostDto> getAllPosts(int pageNo, int pageSize) {
+    public PostResponse getAllPosts(int pageNo, int pageSize, String sortBy) {
 
-        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by(sortBy));
         Page<Post> posts = postRepository.findAll(pageable);
 
         List<Post> listOfPosts = posts.getContent();
 
-        return listOfPosts.stream().map(post -> mapToDTO(post)).collect(Collectors.toList());
+        List<PostDto> content = listOfPosts.stream().map(post -> mapToDTO(post)).collect(Collectors.toList());
+
+        PostResponse postResponse = new PostResponse();
+        postResponse.setContent(content);
+        postResponse.setPageNo(posts.getNumber());
+        postResponse.setPageSize(posts.getSize());
+        postResponse.setTotalElements(posts.getTotalElements());
+        postResponse.setTotalPages(posts.getTotalPages());
+        postResponse.setLast(posts.isLast());
+
+        return postResponse;
     }
 
     @Override
@@ -52,7 +64,6 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public PostDto updatePost(PostDto postDto, long id) {
-        // get post by id from the database
         Post post = postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post", "id", id));
         post.setTitle(postDto.getTitle());
         post.setDescription(postDto.getDescription());
@@ -68,8 +79,6 @@ public class PostServiceImpl implements PostService {
         postRepository.delete(post);
     }
 
-
-    //convert Entity to DTO
     private PostDto mapToDTO(Post post) {
         PostDto postDto = new PostDto();
         postDto.setId(post.getId());
@@ -79,7 +88,6 @@ public class PostServiceImpl implements PostService {
         return postDto;
     }
 
-    //convert DTO to Entity
     private Post mapToEntity(PostDto postDto) {
         Post post  = new Post();
         post.setId(postDto.getId());
