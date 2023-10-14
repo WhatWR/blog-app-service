@@ -1,14 +1,14 @@
 package com.kulboonanake.blogAppService.service;
 
 import com.kulboonanake.blogAppService.payload.CommentDto;
-import com.kulboonanake.blogAppService.payload.PostDto;
-import com.kulboonanake.blogAppService.payload.PostResponse;
+
+import java.util.List;
 
 
 public interface CommentService {
     CommentDto createComment(long postId, CommentDto commentDto);
-    void getAllComments(int pageNo, int pageSize, String sortBy, String sortDir);
-    PostDto getCommentById(long id);
-    PostDto updateComment(CommentDto commentDto, long id);
-    void DeleteCommentById(long id);
+    List<CommentDto> getCommentByPostId(long postId);
+    CommentDto getCommentById(long postId, long id);
+    CommentDto updateCommentById(CommentDto commentDto, long postId, long id);
+    void deleteCommentById(long postId, long id);
 }
